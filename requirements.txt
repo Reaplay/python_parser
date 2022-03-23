@@ -1,0 +1,8 @@
+configparser
+numpy
+requests
+re
+json
+loggers
+bs4
+mysql.connector
