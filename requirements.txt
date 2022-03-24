@@ -1,8 +1,7 @@
 configparser
 numpy
 requests
-re
-json
+jsons
 loggers
 bs4
 mysql.connector
