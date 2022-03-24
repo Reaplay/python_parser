@@ -16,15 +16,59 @@
             "class": "logging.handlers.RotatingFileHandler",
             "level": "DEBUG",
             "formatter": "default",
-            "filename": "log/main.log",
+            "filename": "logs/main.log",
             "maxBytes": 10485760,
             "backupCount": 20
+        
+        },
+        "api_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "INFO",
+            "formatter": "default",
+            "filename": "logs/api.log",
+            "maxBytes": 10485760,
+            "backupCount": 20
+        
+        },
+        "nnmclub_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "INFO",
+            "formatter": "default",
+            "filename": "logs/nnmclub.log",
+            "maxBytes": 10485760,
+            "backupCount": 20
+        
+        },
+        "kinozal_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "INFO",
+            "formatter": "default",
+            "filename": "logs/kinozal.log",
+            "maxBytes": 10485760,
+            "backupCount": 20
+        
         }
     },
     "loggers": {
         "default": {
             "handlers": ["console", "rotating_file"],
             "level": "DEBUG"
+        },
+        "API": {            
+            "handlers": ["console", "api_file"],
+            "level": "DEBUG"
+            
+        },
+        "nnmclub": {            
+            "handlers": ["console", "nnmclub_file"],
+            "level": "DEBUG"
+            
+        },
+        "kinozal": {            
+            "handlers": ["console", "kinozal_file"],
+            "level": "DEBUG"
+            
         }
+        
     }
 }

@@ -34,14 +34,15 @@ def convert_datatime(data):
 #читаем файл-конфиг 
 config = configparser.ConfigParser()
 config.read('config.ini')
-logger = loggers.get_logger('main')
+logger = loggers.get_logger('tracker','nnmclub')
 #инициализируем класс для работы с БД и подключаемся к ней
 db_conn = p_mysql_connect.Database(config['DATABASE'])
 session = requests.Session()
 
 
 array_films = db_conn.select_film()
-logger.info(f"Взяли данные из БД")
+logger.info(f"Get data from DB")
+
 for data_film in array_films:
   
   id_film = data_film[0]
@@ -54,7 +55,7 @@ for data_film in array_films:
   
   year = str(data_film[4])
 
-  logger.info(f"Идем по фильму с ID {data_film[0]} ({film}, {year})")
+  logger.info(f"Prepair film ID {data_film[0]} ({film}, {year})")
   
 
   data = {    
@@ -84,7 +85,7 @@ for data_film in array_films:
   try:
     rs = session.post(config['NNMCLUB']['URL_SEARCH'],data=data)
   except Exception:
-    logger.error(f"Проблема с подключением к хосту. Прерываем работу")
+    logger.error(f"Can't connect to tracker")
     break
   
   text_html = BeautifulSoup(rs.text, 'lxml') # pars text
@@ -107,21 +108,21 @@ for data_film in array_films:
     torrent = db_conn.search_torrent(config['NNMCLUB']['URL_BASE'], link, added)
     if (torrent is not None):
       if(torrent[1] == added):
-        print ('dublicate ' + link)
-        logger.info(f"Дубликат. Торрент совпадает")
+        logger.info(f"Is torrent in DB ({link}). Skip")
       else:
         db_conn.update_status_link(torrent[0],'0')
-        print ('update status ' + link)
-        logger.info(f"Раздача изменилась, праоставляем статус")
+        logger.info(f"Torrent-file ({link}) updated. Change status")
       continue
 
     #заносим в базу
     db_conn.insert_result_search(id_film, config['NNMCLUB']['URL_BASE'], link, section)
-    logger.info(f"Добавляем в базу")
-    print ('add to BD ' + link)
+    logger.info(f"Torrent-link ({link}) add to DB")
+    
 
 
 array_link = db_conn.select_link(config['NNMCLUB']['URL_BASE'], '0')
+logger.info(f"Get torrent-link from DB")
+
 for link in array_link:
   
   rs = session.post(link[2]+link[3])
@@ -138,7 +139,7 @@ for link in array_link:
   # сразу проверяем обновился ли торрент
   registration_torrent = convert_datatime(re.findall('<td class="genmed">[^.](.*?)<\/td>', post)[1])
   if(registration_torrent == link[4]):
-    print ('actual torrent')
+    logger.info(f"Data in DB actual. Skip")
     continue
 
   quality = re.findall('Качество видео:<\/span> (.*?)<', post)[0]
@@ -161,4 +162,4 @@ for link in array_link:
       audio = audio+'Аудио '+str(i)+': ' + str(str_audio)+' <br> '
 
   db_conn.update_link(str(link[0]),'1', quality, translate, lang_translate, subtitles, video_codec, audio, registration_torrent)
-  print ('update torrent')
+  logger.info(f"Update data in DB. ID link: {link[0]}")
