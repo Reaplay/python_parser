@@ -46,9 +46,9 @@ class Database():
         self.sql_execute("SELECT * FROM `query_add_films` WHERE status = 0 AND (link_imdb IS NOT NULL OR link_kinopoisk IS NOT NULL)")
         return (self.cursor.fetchall())
 #API вставка фильмов в таблицу
-    def insert_film(self, title_en, originalTitle, description, releaseDate, year, link_imdb = None, link_kinopoisk = None, title_ru = None, id_imdb = None, id_kinopoisk = None):
-        sql = ("INSERT INTO films (title_en, title_original,  description, date_release, year_production, link_imdb, link_kinopoisk, title_ru, id_imdb, id_kinopoisk) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
-        data_add = (title_en, originalTitle, description, releaseDate, year, link_imdb, link_kinopoisk, title_ru, id_imdb, id_kinopoisk)        
+    def insert_film(self, title_en, originalTitle, description, releaseDate, year, img_poster = None, link_imdb = None, link_kinopoisk = None, title_ru = None, id_imdb = None, id_kinopoisk = None):
+        sql = ("INSERT INTO films (title_en, title_original,  description, date_release, year_production, link_imdb, link_kinopoisk, title_ru, id_imdb, id_kinopoisk, img_poster) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
+        data_add = (title_en, originalTitle, description, releaseDate, year, link_imdb, link_kinopoisk, title_ru, id_imdb, id_kinopoisk, img_poster)        
         return (self.sql_apply(sql, data_add))
 #API поиск в базе фильмов по полю
     def search_in_base(self,url, col):
@@ -61,9 +61,9 @@ class Database():
         self.sql_apply(sql, data_add)
         return
 #API обновление данных фильма        
-    def update_film(self, id_film, title_en, originalTitle, description, releaseDate, year, link_imdb = None, link_kinopoisk = None, title_ru = None, id_imdb = None, id_kinopoisk = None):
-        sql = ("UPDATE films SET title_en = %s, title_original = %s,  description = %s, date_release = %s, year_production = %s, link_imdb = %s, link_kinopoisk = %s, title_ru = %s, id_imdb = %s, id_kinopoisk = %s, updated_at =  CURRENT_TIMESTAMP WHERE id = %s")
-        data_add = (title_en, originalTitle, description, releaseDate, year, link_imdb, link_kinopoisk, title_ru, id_imdb, id_kinopoisk, id_film)   
+    def update_film(self, id_film, title_en, originalTitle, description, releaseDate, year, img_poster = None, link_imdb = None, link_kinopoisk = None, title_ru = None, id_imdb = None, id_kinopoisk = None):
+        sql = ("UPDATE films SET title_en = %s, title_original = %s,  description = %s, date_release = %s, year_production = %s, link_imdb = %s, link_kinopoisk = %s, title_ru = %s, id_imdb = %s, id_kinopoisk = %s, img_poster = %s, updated_at =  CURRENT_TIMESTAMP WHERE id = %s")
+        data_add = (title_en, originalTitle, description, releaseDate, year, link_imdb, link_kinopoisk, title_ru, id_imdb, id_kinopoisk, id_film, img_poster)   
         self.sql_apply(sql, data_add)
 #API обновление даты у фильма    
     def update_url(self, id_film, col, url):

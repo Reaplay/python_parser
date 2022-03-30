@@ -12,11 +12,11 @@ import loggers
 #читаем файл-конфиг
 config = configparser.ConfigParser()
 config.read('config.ini')
+
 #инициализируем класс для работы с БД и подключаемся к ней
 db_conn = p_mysql_connect.Database(config['DATABASE'])
-#logger = loggers.get_logger_old('API')
-#logger = loggers.get_default_logger()
 logger = loggers.get_logger('API','API')
+
 #получем список фильмов
 array_films_query = db_conn.get_film_query()
 logger.info(f"Take data from DB")
@@ -34,14 +34,13 @@ for film in array_films_query:
         #если нашли, то обновляем статус записи
         if id is not None:
             logger.info(f"Found film in DB. Not need added")
-          
-        # обновляем статус
+            # обновляем статус
             db_conn.update_status_film(film[0], '1')
             logger.info(f"Status film in query updated")
             continue
-
         
         logger.info(f"Film not found in DB. Start process added")
+
         #из строчки достаем ИД фильма
         id_film = re.findall("(tt\d{2,})", str(film[1]))[0]
         
@@ -58,7 +57,6 @@ for film in array_films_query:
         # если получаем ответ с другим кодом
         if result.status_code != 200:
             logger.error(f"API return not 200 code")
-           
             # обновляем статус
             db_conn.update_status_film(film[0],'2')
             logger.info(f"Status film in query updated")
@@ -68,7 +66,7 @@ for film in array_films_query:
         data_json = json.loads(result.content.decode())
         
         #добавляем инфу
-        db_conn.insert_film(data_json['title'], data_json['originalTitle'], data_json['plotLocal'], data_json['releaseDate'], data_json['year'],film[1])
+        db_conn.insert_film(data_json['title'], data_json['originalTitle'], data_json['plotLocal'], data_json['releaseDate'], data_json['year'],data_json['image'],film[1])
         logger.info(f"Film add in DB")
 
         #обновляем статус
@@ -107,7 +105,6 @@ for film in array_films_query:
         # если получаем ответ с другим кодом
         if result.status_code != 200 or distributions.status_code != 200:
             logger.error(f"API return not 200 code")
-            
             # обновляем статус
             db_conn.update_status_film(film[0],'2')
             logger.info(f"Status film in query updated")
@@ -133,7 +130,7 @@ for film in array_films_query:
         data_json['releaseDate'] = relise_data
 
         #добавляем инфу
-        db_conn.insert_film(data_json['nameEn'], data_json['nameOriginal'], data_json['description'], data_json['releaseDate'], data_json['year'],data_json['link_imdb'], film[2], data_json['nameRu'], data_json['imdbId'], data_json['kinopoiskId'])
+        db_conn.insert_film(data_json['nameEn'], data_json['nameOriginal'], data_json['description'], data_json['releaseDate'], data_json['year'],data_json['posterUrl'],data_json['link_imdb'], film[2], data_json['nameRu'], data_json['imdbId'], data_json['kinopoiskId'])
         logger.info(f"Film add in DB")
 
         #обновляем статус
@@ -152,12 +149,9 @@ for film in array_films_query:
         # если разные ИД то пишем ошибку
         if (id_is_imdb is not None and id_is_kinopoisk is not None) and (id_is_imdb != id_is_kinopoisk):
             logger.warning(f"DB return different ID films on KP and IMDB")
-            
             # обновляем статус
             db_conn.update_status_film(film[0],'3')
             logger.info(f"Status film in query updated")
-            #добавялем в базу что была такая-то ошибка
-            #db_conn.error_status()
             continue
         elif (id_is_imdb is not None and id_is_kinopoisk is not None) and (id_is_imdb == id_is_kinopoisk):
             logger.info(f"Found film in DB. Not need added")
@@ -187,13 +181,9 @@ for film in array_films_query:
             # если получаем ответ с другим кодом
             if result.status_code != 200  or distributions.status_code != 200:
                 logger.error(f"API return not 200 code")
-                print ('Return not 200')
-                print ('STATUS: ERROR API')
                 # обновляем статус
                 db_conn.update_status_film(film[0],'2')
                 logger.info(f"Status film in query updated")
-                #добавялем в базу что была такая-то ошибка
-                #db_conn.error_status()
                 continue
             
             # парсим результат
@@ -232,15 +222,15 @@ for film in array_films_query:
                 #добавляем инфу
                 if(id_in_base is None):
                     logger.info(f"Film added in DB")
-                    db_conn.insert_film(data_json['nameEn'], data_json['nameOriginal'], data_json['description'], data_json['releaseDate'], data_json['year'],data_json['link_imdb'], film[2], data_json['nameRu'], data_json['imdbId'], data_json['kinopoiskId'])
+                    db_conn.insert_film(data_json['nameEn'], data_json['nameOriginal'], data_json['description'], data_json['releaseDate'], data_json['year'],data_json['posterUrl'],data_json['link_imdb'], film[2], data_json['nameRu'], data_json['imdbId'], data_json['kinopoiskId'])
                 else:
                     logger.info(f"Film UPDATED in DB")
-                    db_conn.update_film(id_in_base, data_json['nameEn'], data_json['nameOriginal'], data_json['description'], data_json['releaseDate'], data_json['year'],data_json['link_imdb'], film[2], data_json['nameRu'], data_json['imdbId'], data_json['kinopoiskId'])
+                    db_conn.update_film(id_in_base, data_json['nameEn'], data_json['nameOriginal'], data_json['description'], data_json['releaseDate'], data_json['year'],data_json['posterUrl'],data_json['link_imdb'], film[2], data_json['nameRu'], data_json['imdbId'], data_json['kinopoiskId'])
                 #обновляем статус
                 db_conn.update_status_film(film[0], '1')
                 logger.info(f"Status film in query updated")
             else:
-
+                logger.info(f"API KP not return URL film in IMDB")
                 #из строчки достаем ИД фильма
                 id_film = re.findall("(tt\d{2,})", str(film[1]))[0]
 
@@ -257,7 +247,6 @@ for film in array_films_query:
                 # если получаем ответ с другим кодом
                 if result.status_code != 200:
                     logger.error(f"API return not 200 code")
-                    
                     # обновляем статус
                     db_conn.update_status_film(film[0],'2')
                     logger.info(f"Status film in query updated")
@@ -282,10 +271,10 @@ for film in array_films_query:
                     if(id_in_base is None):
                         logger.info(f"Film added in DB")
 
-                        db_conn.insert_film(data_json['nameEn'], data_json['nameOriginal'], data_json['description'], data_json['releaseDate'], data_json['year'],film[1], film[2], data_json['nameRu'], data_json['imdbId'], data_json['kinopoiskId'])
+                        db_conn.insert_film(data_json['nameEn'], data_json['nameOriginal'], data_json['description'], data_json['releaseDate'], data_json['year'],data_json['posterUrl'],film[1], film[2], data_json['nameRu'], data_json['imdbId'], data_json['kinopoiskId'])
                     else:
                         logger.info(f"Film UPDATED in DB")
-                        db_conn.update_film(id_in_base, data_json['nameEn'], data_json['nameOriginal'], data_json['description'], data_json['releaseDate'], data_json['year'],film[1], film[2], data_json['nameRu'], data_json['imdbId'], data_json['kinopoiskId'])
+                        db_conn.update_film(id_in_base, data_json['nameEn'], data_json['nameOriginal'], data_json['description'], data_json['releaseDate'], data_json['year'],data_json['posterUrl'],film[1], film[2], data_json['nameRu'], data_json['imdbId'], data_json['kinopoiskId'])
 
                     #обновляем статус
                     db_conn.update_status_film(film[0], '1')
